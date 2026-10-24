@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-msv}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-msv}
+      POSTGRES_DB: ${POSTGRES_DB:-msv}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-msv}:${POSTGRES_PASSWORD:-msv}@db:5432/${POSTGRES_DB:-msv}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  pgdata:
