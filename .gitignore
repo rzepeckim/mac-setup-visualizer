@@ -1,0 +1,27 @@
+# Rust
+target/
+**/*.rs.bk
+
+# Node / frontend
+node_modules/
+web/dist/
+coverage/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Database volumes
+pgdata/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
+*.swp
