@@ -1,4 +1,5 @@
 pub mod config;
+pub mod error;
 
 use axum::{extract::State, http::StatusCode, response::IntoResponse, routing::get, Json, Router};
 use serde_json::json;
