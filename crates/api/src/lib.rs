@@ -1,14 +1,23 @@
 pub mod auth;
 pub mod config;
 pub mod error;
+pub mod routes;
 
-use axum::{extract::State, http::StatusCode, response::IntoResponse, routing::get, Json, Router};
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+    Json, Router,
+};
 use serde_json::json;
 use sqlx::PgPool;
 
 pub fn app(pool: PgPool) -> Router {
     Router::new()
         .route("/api/health", get(health))
+        .route("/api/auth/register", post(routes::auth::register))
+        .route("/api/auth/login", post(routes::auth::login))
         .with_state(pool)
 }
 
