@@ -18,6 +18,7 @@ pub fn app(pool: PgPool) -> Router {
         .route("/api/health", get(health))
         .route("/api/auth/register", post(routes::auth::register))
         .route("/api/auth/login", post(routes::auth::login))
+        .route("/api/auth/me", get(routes::auth::me))
         .with_state(pool)
 }
 
