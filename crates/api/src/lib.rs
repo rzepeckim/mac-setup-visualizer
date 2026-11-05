@@ -7,7 +7,7 @@ use axum::{
     extract::State,
     http::StatusCode,
     response::IntoResponse,
-    routing::{get, post},
+    routing::{delete, get, post},
     Json, Router,
 };
 use serde_json::json;
@@ -19,6 +19,11 @@ pub fn app(pool: PgPool) -> Router {
         .route("/api/auth/register", post(routes::auth::register))
         .route("/api/auth/login", post(routes::auth::login))
         .route("/api/auth/me", get(routes::auth::me))
+        .route(
+            "/api/tokens",
+            get(routes::tokens::list_tokens).post(routes::tokens::create_token),
+        )
+        .route("/api/tokens/{id}", delete(routes::tokens::delete_token))
         .with_state(pool)
 }
 

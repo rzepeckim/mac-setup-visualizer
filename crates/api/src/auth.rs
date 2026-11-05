@@ -105,3 +105,48 @@ fn extract_token(parts: &Parts) -> Result<String, AppError> {
 
     Err(AppError::Unauthorized("missing authorization token".into()))
 }
+
+pub fn hash_api_token(token: &str) -> String {
+    use sha2::{Digest, Sha256};
+    let mut hasher = Sha256::new();
+    hasher.update(token.as_bytes());
+    hex::encode(hasher.finalize())
+}
+
+#[derive(Debug, Clone)]
+pub struct ApiTokenUser {
+    pub user_id: Uuid,
+}
+
+impl FromRequestParts<PgPool> for ApiTokenUser {
+    type Rejection = AppError;
+
+    async fn from_request_parts(parts: &mut Parts, pool: &PgPool) -> Result<Self, Self::Rejection> {
+        let auth_header = parts
+            .headers
+            .get(header::AUTHORIZATION)
+            .and_then(|h| h.to_str().ok())
+            .ok_or_else(|| AppError::Unauthorized("missing authorization header".into()))?;
+
+        let token = auth_header
+            .strip_prefix("Bearer ")
+            .ok_or_else(|| AppError::Unauthorized("invalid authorization format".into()))?;
+
+        let token_hash = hash_api_token(token);
+
+        #[derive(FromRow)]
+        struct TokenRow {
+            user_id: Uuid,
+        }
+
+        let row = sqlx::query_as::<_, TokenRow>(
+            "UPDATE api_tokens SET last_used_at = now() WHERE token_hash = $1 RETURNING user_id",
+        )
+        .bind(token_hash)
+        .fetch_optional(pool)
+        .await?
+        .ok_or_else(|| AppError::Unauthorized("invalid api token".into()))?;
+
+        Ok(ApiTokenUser { user_id: row.user_id })
+    }
+}
