@@ -1,5 +1,5 @@
 use crate::{
-    auth::{hash_api_token, AuthUser},
+    auth::{hash_api_token, ApiTokenUser, AuthUser},
     error::AppError,
 };
 use axum::{
@@ -10,6 +10,7 @@ use axum::{
 };
 use rand::{distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use sqlx::{FromRow, PgPool};
 use uuid::Uuid;
 
@@ -109,4 +110,8 @@ pub async fn delete_token(
     }
 
     Ok(StatusCode::NO_CONTENT)
+}
+
+pub async fn verify_token(user: ApiTokenUser) -> impl IntoResponse {
+    Json(json!({ "user_id": user.user_id }))
 }

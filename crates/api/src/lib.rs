@@ -23,6 +23,7 @@ pub fn app(pool: PgPool) -> Router {
             "/api/tokens",
             get(routes::tokens::list_tokens).post(routes::tokens::create_token),
         )
+        .route("/api/tokens/verify", get(routes::tokens::verify_token))
         .route("/api/tokens/{id}", delete(routes::tokens::delete_token))
         .with_state(pool)
 }
